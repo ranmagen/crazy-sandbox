@@ -1,0 +1,32 @@
+.gauge-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.gauge-widget {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.82);
+  border: 1px solid #6c63ff;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: #e0e0e0;
+  min-width: 80px;
+  transform: translateX(-50%);
+}
+
+.gauge-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gauge-label {
+  color: #888;
+}
+
+.gauge-value {
+  font-weight: 700;
+  color: #00e676;
+}

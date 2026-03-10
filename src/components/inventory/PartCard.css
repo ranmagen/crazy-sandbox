@@ -1,0 +1,59 @@
+.part-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #1e1e2e;
+  border: 1px solid #333;
+  cursor: grab;
+  user-select: none;
+  transition: background 0.12s, border-color 0.12s, transform 0.1s;
+}
+
+.part-card:hover {
+  background: #2a2a3e;
+  border-color: #6c63ff;
+  transform: translateX(2px);
+}
+
+.part-card:active {
+  cursor: grabbing;
+  transform: scale(0.97);
+}
+
+.part-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.part-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.part-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e0e0e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.part-material {
+  font-size: 10px;
+  color: #888;
+}
+
+.part-prop-badge {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: #2a2a5e;
+  color: #aab;
+  width: fit-content;
+}

@@ -1,0 +1,75 @@
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: #0d0d1a;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: #16213e;
+  border-bottom: 2px solid #1e3a6e;
+  flex-shrink: 0;
+  height: 48px;
+}
+
+.app-logo {
+  font-size: 20px;
+}
+
+.app-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #e0e0ff;
+  letter-spacing: 0.5px;
+}
+
+.app-tagline {
+  font-size: 11px;
+  color: #556;
+  margin-left: 4px;
+}
+
+.app-body {
+  display: grid;
+  grid-template-columns: 220px 1fr 280px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.panel-left {
+  border-right: 2px solid #1e1e2e;
+}
+
+.panel-right {
+  border-left: 2px solid #1e1e2e;
+}
+
+.panel-center {
+  display: flex;
+  flex-direction: column;
+  background: #0f0f1a;
+}
+
+.canvas-area {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  padding: 8px;
+  overflow: hidden;
+}
