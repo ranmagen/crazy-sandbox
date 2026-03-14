@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ סימולטור מעגל חשמלי — כיתה ו</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #0f1b2d;
+  color: #e8f4f8;
+  direction: rtl;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+/* ── HEADER ── */
+header {
+  background: linear-gradient(135deg, #6c3fc5 0%, #3a7bd5 100%);
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 3px 15px rgba(0,0,0,0.4);
+  flex-shrink: 0;
+}
+header h1 { font-size: 1.3em; text-shadow: 1px 1px 4px rgba(0,0,0,0.4); }
+.tabs { display: flex; gap: 6px; }
+.tab-btn {
+  padding: 7px 18px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-family: inherit;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+.tab-btn.active { background: white; color: #6c3fc5; }
+.tab-btn:not(.active) { background: rgba(255,255,255,0.2); color: white; }
+.tab-btn:not(.active):hover { background: rgba(255,255,255,0.3); }
+
+/* ── MAIN LAYOUT ── */
+.main { display: flex; flex: 1; overflow: hidden; }
+
+/* ── SIDEBAR (palette) ── */
+.sidebar {
+  width: 110px;
+  background: #16213e;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  flex-shrink: 0;
+  border-left: 1px solid #1e3a5f;
+}
+.sidebar-title {
+  font-size: 0.7em;
+  color: #7a9fc0;
+  text-align: center;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #1e3a5f;
+  letter-spacing: 0.5px;
+}
+.pal-item {
+  background: #0f3460;
+  border: 2px solid #1a4a7a;
+  border-radius: 10px;
+  padding: 7px 4px;
+  cursor: grab;
+  text-align: center;
+  transition: all 0.15s;
+}
+.pal-item:hover { background: #1a5a9a; border-color: #4a9ae4; transform: scale(1.04); }
+.pal-item .icon { font-size: 1.4em; line-height: 1; }
+.pal-item .lbl { font-size: 0.68em; margin-top: 3px; color: #a8d0f0; }
+.pal-sep { border: none; border-top: 1px solid #1e3a5f; margin: 2px 0; }
+
+/* ── TOOLBAR ── */
+.toolbar {
+  background: #16213e;
+  padding: 5px 10px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  border-bottom: 1px solid #1e3a5f;
+  flex-shrink: 0;
+}
+.tool-btn {
+  padding: 5px 12px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.78em;
+  background: #0f3460;
+  color: #c8e6ff;
+  transition: all 0.15s;
+}
+.tool-btn:hover { border-color: #4a9ae4; }
+.tool-btn.active { border-color: #f1c40f; background: #1a3a5c; color: #f1c40f; }
+.tb-spacer { flex: 1; }
+.tb-hint { font-size: 0.72em; color: #7a9fc0; }
+
+/* ── CANVAS AREA ── */
+.canvas-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+canvas {
+  display: block;
+  flex: 1;
+  cursor: crosshair;
+}
+.info-bar {
+  background: #16213e;
+  padding: 6px 14px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-size: 0.82em;
+  border-top: 1px solid #1e3a5f;
+  flex-shrink: 0;
+}
+.circuit-status {
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+.status-open { background: #c0392b; }
+.status-closed { background: #27ae60; }
+
+/* ── MISSIONS PANEL ── */
+.missions-wrap {
+  display: none;
+  flex: 1;
+  overflow: hidden;
+  flex-direction: row;
+}
+.missions-wrap.visible { display: flex; }
+
+.missions-list-panel {
+  width: 190px;
+  background: #16213e;
+  padding: 10px 8px;
+  overflow-y: auto;
+  border-left: 1px solid #1e3a5f;
+  flex-shrink: 0;
+}
+.missions-list-panel h3 { font-size: 0.78em; color: #7a9fc0; margin-bottom: 8px; }
+.mission-item {
+  padding: 9px 10px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+  background: #0f2a4a;
+}
+.mission-item:hover { border-color: #4a9ae4; }
+.mission-item.active { border-color: #f1c40f; background: #1a3a5c; }
+.mission-item.done { border-color: #2ecc71; }
+.mission-item .m-num { font-size: 1.1em; }
+.mission-item .m-name { font-size: 0.78em; color: #a8d0f0; margin-top: 2px; }
+
+.mission-board {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.mission-info {
+  background: #16213e;
+  padding: 10px 14px;
+  border-bottom: 1px solid #1e3a5f;
+  flex-shrink: 0;
+}
+.mission-info h2 { font-size: 1em; color: #f1c40f; margin-bottom: 4px; }
+.mission-info p { font-size: 0.82em; color: #c0d8f0; line-height: 1.5; }
+.mission-actions { display: flex; gap: 8px; margin-top: 8px; }
+.btn-hint {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8em;
+  background: #f39c12;
+  color: white;
+  transition: all 0.15s;
+}
+.btn-hint:hover { background: #e67e22; }
+.btn-clear {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8em;
+  background: #e74c3c;
+  color: white;
+  transition: all 0.15s;
+}
+.btn-clear:hover { background: #c0392b; }
+
+/* ── SUCCESS OVERLAY ── */
+.success-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.success-overlay.show { display: flex; }
+.success-card {
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  color: #2c1a00;
+  padding: 28px 40px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  animation: popIn 0.3s ease;
+}
+@keyframes popIn {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.success-card h2 { font-size: 1.8em; margin-bottom: 8px; }
+.success-card p  { font-size: 0.95em; margin-bottom: 18px; }
+.btn-next {
+  background: #2ecc71;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 14px;
+  font-size: 1em;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: bold;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  transition: all 0.15s;
+}
+.btn-next:hover { background: #27ae60; transform: scale(1.03); }
+
+/* ── HINT MODAL ── */
+.hint-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+.hint-modal.show { display: flex; }
+.hint-card {
+  background: #16213e;
+  border: 2px solid #f39c12;
+  padding: 24px 30px;
+  border-radius: 16px;
+  max-width: 380px;
+  text-align: center;
+}
+.hint-card h3 { color: #f39c12; font-size: 1.1em; margin-bottom: 12px; }
+.hint-card p  { font-size: 0.9em; line-height: 1.6; color: #c0d8f0; }
+.btn-ok {
+  margin-top: 16px;
+  padding: 8px 22px;
+  background: #f39c12;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9em;
+  cursor: pointer;
+  font-family: inherit;
+  color: white;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ סימולטור מעגל חשמלי</h1>
+  <div class="tabs">
+    <button class="tab-btn active" id="btn-free"     onclick="switchTab('free')">🎮 משחק חופשי</button>
+    <button class="tab-btn"        id="btn-missions" onclick="switchTab('missions')">📋 משימות</button>
+  </div>
+</header>
+
+<div class="main">
+  <!-- Palette sidebar — always visible -->
+  <div class="sidebar" id="palette">
+    <div class="sidebar-title">רכיבים</div>
+    <div class="pal-item" onmousedown="palDragStart(event,'battery')">
+      <div class="icon">🔋</div><div class="lbl">סוללה</div>
+    </div>
+    <div class="pal-item" onmousedown="palDragStart(event,'bulb')">
+      <div class="icon">💡</div><div class="lbl">נורה</div>
+    </div>
+    <div class="pal-item" onmousedown="palDragStart(event,'led')">
+      <div class="icon">🔴</div><div class="lbl">LED</div>
+    </div>
+    <div class="pal-item" onmousedown="palDragStart(event,'switch')">
+      <div class="icon">🔌</div><div class="lbl">מתג</div>
+    </div>
+    <div class="pal-item" onmousedown="palDragStart(event,'resistor')">
+      <div class="icon">〰</div><div class="lbl">נגד</div>
+    </div>
+    <hr class="pal-sep">
+    <div class="sidebar-title">כלים</div>
+    <div class="pal-item" onclick="setActiveTool('select')">
+      <div class="icon">👆</div><div class="lbl">בחר</div>
+    </div>
+    <div class="pal-item" onclick="setActiveTool('wire')">
+      <div class="icon">〰️</div><div class="lbl">חוט</div>
+    </div>
+    <div class="pal-item" onclick="setActiveTool('delete')">
+      <div class="icon">🗑️</div><div class="lbl">מחק</div>
+    </div>
+  </div>
+
+  <!-- FREE PLAY panel -->
+  <div class="canvas-area" id="free-panel">
+    <div class="toolbar">
+      <button class="tool-btn active" id="t-select" onclick="setActiveTool('select')">👆 בחר / הזז</button>
+      <button class="tool-btn"        id="t-wire"   onclick="setActiveTool('wire')">〰️ חוט</button>
+      <button class="tool-btn"        id="t-delete" onclick="setActiveTool('delete')">🗑️ מחק</button>
+      <button class="tool-btn"        onclick="clearBoard(freeState)">🗑️ נקה הכל</button>
+      <span class="tb-spacer"></span>
+      <span class="tb-hint">לחץ על מתג כדי לפתוח / לסגור • קליק ימני = מחק</span>
+    </div>
+    <canvas id="free-canvas"></canvas>
+    <div class="info-bar">
+      <span>מצב המעגל:</span>
+      <span class="circuit-status status-open" id="free-status">מעגל פתוח</span>
+      <span id="free-extra" style="color:#7a9fc0; font-size:0.88em;"></span>
+    </div>
+  </div>
+
+  <!-- MISSIONS panel -->
+  <div class="missions-wrap" id="missions-panel">
+    <!-- mission list -->
+    <div class="missions-list-panel">
+      <h3>בחר משימה:</h3>
+      <div id="mission-list"></div>
+    </div>
+
+    <!-- mission board (info + canvas) -->
+    <div class="mission-board">
+      <div class="mission-info">
+        <h2 id="m-title">בחר משימה מהרשימה</h2>
+        <p  id="m-desc"></p>
+        <div class="mission-actions">
+          <button class="btn-hint"  id="btn-hint"  onclick="openHint()" style="display:none">💡 רמז</button>
+          <button class="btn-clear" onclick="clearBoard(missionState); hideSuccess()">🗑️ נקה לוח</button>
+        </div>
+      </div>
+      <div style="flex:1; display:flex; flex-direction:column; position:relative; overflow:hidden;">
+        <div class="toolbar">
+          <button class="tool-btn active" id="mt-select" onclick="setActiveTool('select')">👆 בחר / הזז</button>
+          <button class="tool-btn"        id="mt-wire"   onclick="setActiveTool('wire')">〰️ חוט</button>
+          <button class="tool-btn"        id="mt-delete" onclick="setActiveTool('delete')">🗑️ מחק</button>
+          <span class="tb-spacer"></span>
+          <span class="tb-hint">לחץ על מתג כדי לפתוח / לסגור</span>
+        </div>
+        <canvas id="mission-canvas" style="flex:1; display:block;"></canvas>
+        <div class="info-bar">
+          <span>מצב המעגל:</span>
+          <span class="circuit-status status-open" id="mission-status">מעגל פתוח</span>
+        </div>
+        <!-- success overlay is inside this relative container -->
+        <div class="success-overlay" id="success-overlay">
+          <div class="success-card">
+            <h2>🎉 כל הכבוד!</h2>
+            <p id="success-msg">השלמת את המשימה!</p>
+            <button class="btn-next" onclick="nextMission()">המשימה הבאה ➡️</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hint modal -->
+<div class="hint-modal" id="hint-modal">
+  <div class="hint-card">
+    <h3>💡 רמז</h3>
+    <p id="hint-text"></p>
+    <button class="btn-ok" onclick="closeHint()">הבנתי!</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════════════
+const GRID      = 60;   // snap grid size (px)
+const COMP_W    = 90;   // terminal-to-terminal width
+const COMP_H    = 46;   // bounding box height
+const T_RADIUS  = 9;    // terminal dot radius
+const SNAP_DIST = 22;   // terminal snap distance
+let   UID       = 0;
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+function makeState() {
+  return {
+    components: [],
+    wires:      [],
+    wireStart:  null,   // { id: terminalId, x, y }
+    dragging:   null,   // component being dragged
+    dragOX: 0, dragOY: 0,
+    palDrag: null,      // type string while dragging from palette
+    mouseX: 0, mouseY: 0,
+    hoveredTerminal: null,
+    animTime: 0,
+  };
+}
+const freeState    = makeState();
+const missionState = makeState();
+
+let currentTab  = 'free';
+let activeTool  = 'select';
+let currentMissionIndex = 0;
+const completedMissions = new Set();
+
+// ═══════════════════════════════════════════════════════
+//  TERMINAL HELPERS
+// ═══════════════════════════════════════════════════════
+function terminals(comp) {
+  const hw = COMP_W / 2;
+  return [
+    { id: `${comp.id}_0`, x: comp.x - hw, y: comp.y },
+    { id: `${comp.id}_1`, x: comp.x + hw, y: comp.y },
+  ];
+}
+function terminalById(state, tid) {
+  for (const c of state.components) {
+    for (const t of terminals(c)) {
+      if (t.id === tid) return t;
+    }
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════
+//  CIRCUIT SIMULATION  (BFS graph)
+// ═══════════════════════════════════════════════════════
+function simulate(state) {
+  const adj = new Map();
+  const addEdge = (a, b) => {
+    if (!adj.has(a)) adj.set(a, new Set());
+    if (!adj.has(b)) adj.set(b, new Set());
+    adj.get(a).add(b);
+    adj.get(b).add(a);
+  };
+
+  // Internal component connections (both terminals connected through body)
+  for (const c of state.components) {
+    if (c.type === 'battery')  continue;           // battery is EMF source, not a passive edge
+    if (c.type === 'switch' && !c.closed) continue; // open switch = break
+    addEdge(`${c.id}_0`, `${c.id}_1`);
+  }
+  // Wires
+  for (const w of state.wires) addEdge(w.from, w.to);
+
+  const battery = state.components.find(c => c.type === 'battery');
+  if (!battery) { state.components.forEach(c => c.active = false); return { closed: false }; }
+
+  const posT = `${battery.id}_1`; // + terminal (right)
+  const negT = `${battery.id}_0`; // − terminal (left)
+
+  // BFS from +
+  const visited = new Set([posT]);
+  const queue   = [posT];
+  while (queue.length) {
+    const cur = queue.shift();
+    for (const nxt of (adj.get(cur) || [])) {
+      if (!visited.has(nxt)) { visited.add(nxt); queue.push(nxt); }
+    }
+  }
+
+  const closed = visited.has(negT);
+
+  for (const c of state.components) {
+    if (c.type === 'battery') {
+      c.active = closed;
+    } else {
+      c.active = closed && visited.has(`${c.id}_0`) && visited.has(`${c.id}_1`);
+    }
+  }
+
+  // Wire active flag — store in wire object for rendering
+  for (const w of state.wires) {
+    const fromComp = state.components.find(c => w.from.startsWith(c.id + '_'));
+    const toComp   = state.components.find(c => w.to.startsWith(c.id + '_'));
+    w.active = !!(fromComp?.active && toComp?.active && closed &&
+                  visited.has(w.from) && visited.has(w.to));
+  }
+
+  return { closed };
+}
+
+// Series/parallel helper: remove compA, check if compB still active
+function bulbsInSeries(state, a, b) {
+  const stripped = {
+    components: state.components.filter(c => c.id !== a.id),
+    wires:      state.wires.filter(w => !w.from.startsWith(a.id+'_') && !w.to.startsWith(a.id+'_')),
+  };
+  simulate(stripped);
+  const bCopy = stripped.components.find(c => c.id === b.id);
+  return !bCopy?.active; // series → removing A kills B
+}
+
+// ═══════════════════════════════════════════════════════
+//  DRAWING  (Canvas 2D)
+// ═══════════════════════════════════════════════════════
+function rrect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);  ctx.arcTo(x+w, y,   x+w, y+r,   r);
+  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w, y+h, x+w-r, y+h, r);
+  ctx.lineTo(x+r, y+h);  ctx.arcTo(x,   y+h, x,   y+h-r, r);
+  ctx.lineTo(x,   y+r);  ctx.arcTo(x,   y,   x+r, y,     r);
+  ctx.closePath();
+}
+
+function drawBattery(ctx, comp) {
+  const W = COMP_W, H = COMP_H;
+  const glow = comp.active;
+
+  if (glow) { ctx.shadowColor = '#2ecc71'; ctx.shadowBlur = 18; }
+
+  // Left half (negative)
+  ctx.fillStyle = glow ? '#229954' : '#1a5c38';
+  rrect(ctx, -W/2, -H/2, W/2, H, 10);
+  ctx.fill();
+  // Right half (positive)
+  ctx.fillStyle = glow ? '#2ecc71' : '#27ae60';
+  rrect(ctx, 0, -H/2, W/2, H, 10);
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+
+  // Divider
+  ctx.strokeStyle = '#0a3020'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, -H/2+4); ctx.lineTo(0, H/2-4); ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.font = 'bold 14px Arial';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('−', -W/4, 0);
+  ctx.fillText('+', +W/4, 0);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '8px Arial';
+  ctx.fillText('סוללה 9V', 0, H/2-6);
+}
+
+function drawBulb(ctx, comp) {
+  const R = 17, glow = comp.active;
+  // Wire stubs to terminals
+  ctx.strokeStyle = '#556677'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-COMP_W/2, 0); ctx.lineTo(-R, 0);
+  ctx.moveTo( COMP_W/2, 0); ctx.lineTo( R, 0);
+  ctx.stroke();
+
+  if (glow) { ctx.shadowColor = '#ffe066'; ctx.shadowBlur = 30; }
+
+  // Glass circle
+  ctx.fillStyle   = glow ? '#ffe066' : '#4a5a6a';
+  ctx.strokeStyle = glow ? '#f39c12' : '#2a3a4a';
+  ctx.lineWidth   = 2;
+  ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Filament
+  ctx.strokeStyle = glow ? '#c0640a' : '#667788'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-5, -4); ctx.lineTo(-2, 2); ctx.lineTo(2, -4); ctx.lineTo(5, 2);
+  ctx.stroke();
+
+  // Base
+  ctx.fillStyle = '#3a4a5a';
+  ctx.fillRect(-6, R-2, 12, 8);
+
+  ctx.fillStyle = glow ? '#f1c40f' : '#7a9fb0';
+  ctx.font = '8px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('נורה', 0, R+10);
+}
+
+function drawLED(ctx, comp) {
+  const R = 13, glow = comp.active;
+  ctx.strokeStyle = '#556677'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-COMP_W/2, 0); ctx.lineTo(-R, 0);
+  ctx.moveTo( COMP_W/2, 0); ctx.lineTo( R, 0);
+  ctx.stroke();
+
+  if (glow) { ctx.shadowColor = '#ff4444'; ctx.shadowBlur = 28; }
+
+  ctx.fillStyle   = glow ? '#ff4444' : '#4a2222';
+  ctx.strokeStyle = glow ? '#ff8888' : '#3a1a1a';
+  ctx.lineWidth   = 2;
+  ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Arrow symbol (anode→cathode)
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.beginPath();
+  ctx.moveTo(-5, -5); ctx.lineTo(-5, 5); ctx.lineTo(4, 0); ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = glow ? '#ff8888' : '#aa6666';
+  ctx.font = '8px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('LED', 0, R+10);
+}
+
+function drawSwitch(ctx, comp) {
+  const W = COMP_W, H = COMP_H, c = comp.closed;
+
+  // Body outline
+  ctx.fillStyle   = c ? 'rgba(46,204,113,0.12)' : 'rgba(231,76,60,0.12)';
+  ctx.strokeStyle = c ? '#2ecc71' : '#e74c3c';
+  ctx.lineWidth   = 2;
+  rrect(ctx, -W/2, -H/2, W, H, 8); ctx.fill(); ctx.stroke();
+
+  // Contact dots
+  ctx.fillStyle = c ? '#2ecc71' : '#e74c3c';
+  ctx.beginPath(); ctx.arc(-20, 0, 5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc( 20, 0, 5, 0, Math.PI*2); ctx.fill();
+
+  // Lever
+  ctx.strokeStyle = c ? '#2ecc71' : '#e74c3c'; ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(-20, 0);
+  if (c) { ctx.lineTo(20, 0); } else { ctx.lineTo(14, -14); }
+  ctx.stroke();
+
+  // Label
+  ctx.fillStyle = c ? '#2ecc71' : '#e74c3c';
+  ctx.font = '8px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(c ? 'מתג: סגור' : 'מתג: פתוח', 0, H/2-5);
+}
+
+function drawResistor(ctx, comp) {
+  const RW = 46, RH = 18;
+  // Wire stubs
+  ctx.strokeStyle = '#556677'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-COMP_W/2, 0); ctx.lineTo(-RW/2, 0);
+  ctx.moveTo( COMP_W/2, 0); ctx.lineTo( RW/2, 0);
+  ctx.stroke();
+
+  // Body
+  ctx.fillStyle   = '#b04a00';
+  ctx.strokeStyle = '#7a2a00';
+  ctx.lineWidth   = 2;
+  rrect(ctx, -RW/2, -RH/2, RW, RH, 4); ctx.fill(); ctx.stroke();
+
+  // Zigzag
+  ctx.strokeStyle = 'rgba(255,200,100,0.6)'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  const segs = 6, sw = RW/segs;
+  ctx.moveTo(-RW/2, 0);
+  for (let i = 1; i <= segs; i++) {
+    ctx.lineTo(-RW/2 + i*sw, i%2===0 ? 0 : (i%4===1 ? -6 : 6));
+  }
+  ctx.stroke();
+
+  ctx.fillStyle = '#e67e22';
+  ctx.font = '8px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('נגד', 0, RH/2+10);
+}
+
+const DRAWERS = { battery: drawBattery, bulb: drawBulb, led: drawLED, switch: drawSwitch, resistor: drawResistor };
+
+// ── render a full state onto ctx ──────────────────────
+function renderState(ctx, state, result) {
+  const { width: W, height: H } = ctx.canvas;
+
+  // Background
+  ctx.fillStyle = '#0a1520';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(60,120,180,0.12)'; ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += GRID) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += GRID) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  // Wires
+  for (const w of state.wires) renderWire(ctx, w, state);
+
+  // Wire-in-progress
+  if (state.wireStart) {
+    ctx.strokeStyle = '#f1c40f'; ctx.lineWidth = 2;
+    ctx.setLineDash([6, 5]);
+    ctx.beginPath();
+    ctx.moveTo(state.wireStart.x, state.wireStart.y);
+    ctx.lineTo(state.mouseX, state.mouseY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Components
+  for (const c of state.components) {
+    ctx.save();
+    ctx.translate(c.x, c.y);
+    DRAWERS[c.type](ctx, c);
+    ctx.restore();
+
+    // Terminals
+    for (const t of terminals(c)) {
+      const hover = state.hoveredTerminal === t.id;
+      const start = state.wireStart?.id === t.id;
+      ctx.beginPath(); ctx.arc(t.x, t.y, T_RADIUS, 0, Math.PI*2);
+      if (start)      { ctx.fillStyle = '#f1c40f'; ctx.shadowColor='#f1c40f'; ctx.shadowBlur=12; }
+      else if (hover) { ctx.fillStyle = '#3498db'; ctx.shadowColor='#3498db'; ctx.shadowBlur=10; }
+      else            { ctx.fillStyle = 'rgba(40,80,130,0.85)'; ctx.shadowBlur=0; }
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  // Current animation
+  if (result?.closed) drawCurrentFlow(ctx, state);
+
+  // Palette ghost
+  if (state.palDrag) {
+    ctx.save();
+    ctx.translate(state.mouseX, state.mouseY);
+    ctx.globalAlpha = 0.55;
+    DRAWERS[state.palDrag](ctx, { type: state.palDrag, x:0, y:0, active:false, closed:false });
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+}
+
+function renderWire(ctx, w, state) {
+  const fp = terminalById(state, w.from);
+  const tp = terminalById(state, w.to);
+  if (!fp || !tp) return;
+
+  // Manhattan routing
+  const mx = (fp.x + tp.x) / 2;
+  const path = [
+    { x: fp.x, y: fp.y }, { x: mx, y: fp.y },
+    { x: mx,  y: tp.y }, { x: tp.x, y: tp.y }
+  ];
+  w._path = path;
+
+  ctx.beginPath();
+  ctx.moveTo(fp.x, fp.y);
+  ctx.lineTo(mx, fp.y); ctx.lineTo(mx, tp.y); ctx.lineTo(tp.x, tp.y);
+  ctx.strokeStyle = w.active ? '#f39c12' : '#2a4a6a';
+  ctx.lineWidth   = w.active ? 3 : 2;
+  ctx.shadowColor = w.active ? '#f39c12' : 'transparent';
+  ctx.shadowBlur  = w.active ? 8 : 0;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+function drawCurrentFlow(ctx, state) {
+  const t = state.animTime;
+  for (const w of state.wires) {
+    if (!w.active || !w._path) continue;
+    const plen = pathLen(w._path);
+    if (plen < 1) continue;
+    for (let i = 0; i < 3; i++) {
+      const d   = ((t * 60 + i * plen / 3) % plen);
+      const pt  = pointAt(w._path, d);
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, 3.5, 0, Math.PI*2);
+      ctx.fillStyle  = '#fff9a0';
+      ctx.shadowColor= '#fff9a0'; ctx.shadowBlur = 7;
+      ctx.fill(); ctx.shadowBlur = 0;
+    }
+  }
+}
+function pathLen(path) {
+  let l = 0;
+  for (let i=1;i<path.length;i++) { const dx=path[i].x-path[i-1].x, dy=path[i].y-path[i-1].y; l+=Math.hypot(dx,dy); }
+  return l;
+}
+function pointAt(path, dist) {
+  let rem = dist;
+  for (let i=1;i<path.length;i++) {
+    const dx=path[i].x-path[i-1].x, dy=path[i].y-path[i-1].y, sl=Math.hypot(dx,dy);
+    if (rem<=sl) { const t=rem/sl; return { x:path[i-1].x+dx*t, y:path[i-1].y+dy*t }; }
+    rem-=sl;
+  }
+  return path[path.length-1];
+}
+
+// ═══════════════════════════════════════════════════════
+//  INTERACTION
+// ═══════════════════════════════════════════════════════
+function snapG(v) { return Math.round(v / GRID) * GRID; }
+
+function terminalNear(state, x, y) {
+  for (const c of state.components) {
+    for (const t of terminals(c)) {
+      if (Math.hypot(t.x-x, t.y-y) < SNAP_DIST) return t;
+    }
+  }
+  return null;
+}
+function compAt(state, x, y) {
+  for (const c of [...state.components].reverse()) {
+    if (Math.abs(c.x-x) < COMP_W/2 + 4 && Math.abs(c.y-y) < COMP_H/2 + 14) return c;
+  }
+  return null;
+}
+function wireAt(state, x, y) {
+  for (const w of state.wires) {
+    if (!w._path) continue;
+    for (let i=1;i<w._path.length;i++) {
+      if (segDist({x,y}, w._path[i-1], w._path[i]) < 7) return w;
+    }
+  }
+  return null;
+}
+function segDist(p, a, b) {
+  const dx=b.x-a.x, dy=b.y-a.y;
+  if (!dx && !dy) return Math.hypot(p.x-a.x, p.y-a.y);
+  const t = Math.max(0, Math.min(1, ((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy)));
+  return Math.hypot(p.x-a.x-dx*t, p.y-a.y-dy*t);
+}
+
+function addComp(state, type, x, y) {
+  const c = { id: `c${UID++}`, type, x, y, active: false };
+  if (type === 'switch') c.closed = false;
+  state.components.push(c);
+  return c;
+}
+function deleteComp(state, comp) {
+  state.components = state.components.filter(c => c !== comp);
+  state.wires      = state.wires.filter(w => !w.from.startsWith(comp.id+'_') && !w.to.startsWith(comp.id+'_'));
+}
+
+function canvasMouseMove(e, canvas, state) {
+  const r = canvas.getBoundingClientRect();
+  state.mouseX = e.clientX - r.left;
+  state.mouseY = e.clientY - r.top;
+  const t = terminalNear(state, state.mouseX, state.mouseY);
+  state.hoveredTerminal = t ? t.id : null;
+  if (state.dragging) {
+    state.dragging.x = snapG(state.mouseX + state.dragOX);
+    state.dragging.y = snapG(state.mouseY + state.dragOY);
+  }
+}
+
+function canvasMouseDown(e, canvas, state) {
+  if (e.button !== 0) return;
+  const r = canvas.getBoundingClientRect();
+  const x = e.clientX - r.left, y = e.clientY - r.top;
+
+  if (activeTool === 'wire') {
+    const t = terminalNear(state, x, y);
+    if (t) {
+      if (!state.wireStart) {
+        state.wireStart = t;
+      } else {
+        if (state.wireStart.id !== t.id) {
+          const dup = state.wires.some(w =>
+            (w.from===state.wireStart.id && w.to===t.id) ||
+            (w.from===t.id && w.to===state.wireStart.id)
+          );
+          if (!dup) state.wires.push({ id:`w${UID++}`, from:state.wireStart.id, to:t.id });
+        }
+        state.wireStart = null;
+      }
+    } else { state.wireStart = null; }
+    return;
+  }
+
+  if (activeTool === 'delete') {
+    const c = compAt(state, x, y);
+    if (c) { deleteComp(state, c); return; }
+    const w = wireAt(state, x, y);
+    if (w) { state.wires = state.wires.filter(ww => ww !== w); }
+    return;
+  }
+
+  // select mode
+  const t = terminalNear(state, x, y);
+  if (t) {
+    // clicking a terminal in select mode → auto-switch to wire tool
+    state.wireStart = t;
+    setActiveTool('wire');
+    return;
+  }
+  const c = compAt(state, x, y);
+  if (c) {
+    if (c.type === 'switch') { c.closed = !c.closed; return; }
+    state.dragging = c;
+    state.dragOX = c.x - x;
+    state.dragOY = c.y - y;
+  }
+}
+
+function canvasMouseUp(state) {
+  state.dragging = null;
+}
+
+function canvasRightClick(e, canvas, state) {
+  e.preventDefault();
+  const r = canvas.getBoundingClientRect();
+  const x = e.clientX - r.left, y = e.clientY - r.top;
+  const c = compAt(state, x, y);
+  if (c) { deleteComp(state, c); return; }
+  const w = wireAt(state, x, y);
+  if (w) state.wires = state.wires.filter(ww => ww !== w);
+}
+
+function setupCanvas(canvas, state) {
+  canvas.addEventListener('mousemove', e => canvasMouseMove(e, canvas, state));
+  canvas.addEventListener('mousedown', e => canvasMouseDown(e, canvas, state));
+  canvas.addEventListener('mouseup',   () => canvasMouseUp(state));
+  canvas.addEventListener('contextmenu', e => canvasRightClick(e, canvas, state));
+}
+
+// ═══════════════════════════════════════════════════════
+//  PALETTE DRAG-TO-CANVAS
+// ═══════════════════════════════════════════════════════
+function palDragStart(e, type) {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  const st = currentTab === 'free' ? freeState : missionState;
+  st.palDrag = type;
+
+  const onMove = ev => {
+    st.mouseX = ev.clientX;
+    st.mouseY = ev.clientY;
+  };
+  const onUp = ev => {
+    st.palDrag = null;
+    const cnv = currentTab === 'free'
+      ? document.getElementById('free-canvas')
+      : document.getElementById('mission-canvas');
+    const r = cnv.getBoundingClientRect();
+    const x = ev.clientX - r.left, y = ev.clientY - r.top;
+    if (x >= 0 && x <= cnv.width && y >= 0 && y <= cnv.height) {
+      addComp(st, type, snapG(x), snapG(y));
+    }
+    window.removeEventListener('mousemove', onMove);
+    window.removeEventListener('mouseup', onUp);
+  };
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+}
+
+// ═══════════════════════════════════════════════════════
+//  TOOLS & TABS
+// ═══════════════════════════════════════════════════════
+function setActiveTool(tool) {
+  activeTool = tool;
+  freeState.wireStart    = null;
+  missionState.wireStart = null;
+  ['select','wire','delete'].forEach(id => {
+    document.getElementById('t-'+id)?.classList.toggle('active', id===tool);
+    document.getElementById('mt-'+id)?.classList.toggle('active', id===tool);
+  });
+}
+
+function clearBoard(state) {
+  state.components = []; state.wires = [];
+  state.wireStart  = null; state.dragging = null;
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('btn-free')?.classList.toggle('active', tab==='free');
+  document.getElementById('btn-missions')?.classList.toggle('active', tab==='missions');
+  document.getElementById('free-panel')?.style.setProperty('display', tab==='free' ? 'flex' : 'none', 'important');
+  const mp = document.getElementById('missions-panel');
+  if (tab==='missions') { mp.classList.add('visible'); } else { mp.classList.remove('visible'); }
+  resizeCanvases();
+}
+
+// ═══════════════════════════════════════════════════════
+//  MISSIONS
+// ═══════════════════════════════════════════════════════
+const MISSIONS = [
+  {
+    name: 'הדלק את הנורה!',
+    title: '⚡ משימה 1 — הדלק את הנורה!',
+    desc: 'חבר סוללה ונורה כדי להדליק אותה. זכור — המעגל חייב להיות סגור (חוט מכל צד).',
+    hint: 'שים סוללה ונורה על הלוח. חבר חוט מהטרמינל הימני (+) של הסוללה לטרמינל הימני של הנורה, וחוט מהטרמינל השמאלי (−) של הסוללה לטרמינל השמאלי של הנורה.',
+    check(st) {
+      const bat  = st.components.find(c => c.type==='battery');
+      const bulb = st.components.find(c => c.type==='bulb');
+      return bat && bulb && simulate(st).closed && bulb.active;
+    }
+  },
+  {
+    name: 'מתג אורות',
+    title: '🔌 משימה 2 — בנה מתג אורות',
+    desc: 'בנה מעגל עם סוללה, נורה ומתג. לחץ על המתג כדי להדליק ולכבות את הנורה. המשימה מצליחה כשהמתג סגור והנורה דולקת.',
+    hint: 'חבר: סוללה → חוט → מתג → חוט → נורה → חוט → סוללה. לחץ על המתג כדי לסגור אותו (הנורה תידלק).',
+    check(st) {
+      const bat  = st.components.find(c => c.type==='battery');
+      const bulb = st.components.find(c => c.type==='bulb');
+      const sw   = st.components.find(c => c.type==='switch');
+      return bat && bulb && sw && sw.closed && simulate(st).closed && bulb.active;
+    }
+  },
+  {
+    name: 'שתי נורות בטור',
+    title: '💡💡 משימה 3 — שתי נורות בטור',
+    desc: 'חבר שתי נורות בטור (אחת אחרי השנייה). שתיהן יאירו — אך שים לב שהן פחות בוהקות מנורה בודדת.',
+    hint: 'בטור: סוללה → נורה 1 → נורה 2 → חזרה לסוללה. שתי הנורות מחוברות "בשרשרת".',
+    check(st) {
+      const bat   = st.components.find(c => c.type==='battery');
+      const bulbs = st.components.filter(c => c.type==='bulb');
+      if (!bat || bulbs.length < 2) return false;
+      simulate(st);
+      if (!bulbs.every(b=>b.active)) return false;
+      return bulbsInSeries(st, bulbs[0], bulbs[1]);
+    }
+  },
+  {
+    name: 'שתי נורות במקביל',
+    title: '⚡ משימה 4 — שתי נורות במקביל',
+    desc: 'חבר שתי נורות במקביל (כל אחת ישירות לסוללה). שתיהן יאירו בבהירות מלאה!',
+    hint: 'במקביל: שני הטרמינלים של שתי הנורות מחוברים לאותן נקודות (+ לשתיהן, − לשתיהן), כל נורה "רואה" את מלוא המתח.',
+    check(st) {
+      const bat   = st.components.find(c => c.type==='battery');
+      const bulbs = st.components.filter(c => c.type==='bulb');
+      if (!bat || bulbs.length < 2) return false;
+      simulate(st);
+      if (!bulbs.every(b=>b.active)) return false;
+      return !bulbsInSeries(st, bulbs[0], bulbs[1]); // parallel = NOT series
+    }
+  },
+  {
+    name: 'אתגר סופי 🏆',
+    title: '🏆 משימה 5 — אתגר הסופי',
+    desc: 'בנה מעגל עם מתג ששולט על שתי נורות המחוברות במקביל. כשהמתג פתוח — שתיהן כבויות. כשהמתג סגור — שתיהן דולקות.',
+    hint: 'חבר את המתג בטור עם הסוללה, ואז חבר את שתי הנורות במקביל אחרי המתג. המתג שולט על הכל.',
+    check(st) {
+      const bat   = st.components.find(c => c.type==='battery');
+      const bulbs = st.components.filter(c => c.type==='bulb');
+      const sw    = st.components.find(c => c.type==='switch');
+      if (!bat || bulbs.length < 2 || !sw) return false;
+      if (!sw.closed) return false;
+      simulate(st);
+      if (!bulbs.every(b=>b.active)) return false;
+      return !bulbsInSeries(st, bulbs[0], bulbs[1]);
+    }
+  },
+];
+
+function renderMissionList() {
+  const el = document.getElementById('mission-list');
+  el.innerHTML = '';
+  MISSIONS.forEach((m, i) => {
+    const div = document.createElement('div');
+    div.className = 'mission-item' +
+      (i === currentMissionIndex ? ' active' : '') +
+      (completedMissions.has(i) ? ' done' : '');
+    div.innerHTML = `<div class="m-num">${completedMissions.has(i) ? '✅' : (i+1)+'.'}</div>
+                     <div class="m-name">${m.name}</div>`;
+    div.onclick = () => selectMission(i);
+    el.appendChild(div);
+  });
+}
+
+function selectMission(i) {
+  currentMissionIndex = i;
+  clearBoard(missionState);
+  hideSuccess();
+  renderMissionList();
+  const m = MISSIONS[i];
+  document.getElementById('m-title').textContent    = m.title;
+  document.getElementById('m-desc').textContent     = m.desc;
+  document.getElementById('btn-hint').style.display = 'inline-block';
+}
+
+function openHint() {
+  const m = MISSIONS[currentMissionIndex];
+  if (!m) return;
+  document.getElementById('hint-text').textContent = m.hint;
+  document.getElementById('hint-modal').classList.add('show');
+}
+function closeHint() { document.getElementById('hint-modal').classList.remove('show'); }
+
+function checkMissionSuccess() {
+  if (currentTab !== 'missions') return;
+  if (document.getElementById('success-overlay').classList.contains('show')) return;
+  const m = MISSIONS[currentMissionIndex];
+  if (!m) return;
+  if (m.check(missionState)) {
+    completedMissions.add(currentMissionIndex);
+    renderMissionList();
+    const msgs = [
+      'כל הכבוד! חיברת מעגל חשמלי פשוט!',
+      'מצוין! עכשיו אתה יודע לשלוט בנורה עם מתג!',
+      'יפה מאוד! זה מעגל בטור — הזרם עובר דרך שתי הנורות.',
+      'פנטסטי! מעגל מקביל — כל נורה מקבלת מתח מלא!',
+      '🏆 CHAMPION! סיימת את כל המשימות! אתה מהנדס חשמל!'
+    ];
+    document.getElementById('success-msg').textContent = msgs[currentMissionIndex] || 'השלמת את המשימה!';
+    document.getElementById('success-overlay').classList.add('show');
+  }
+}
+function hideSuccess() { document.getElementById('success-overlay').classList.remove('show'); }
+
+function nextMission() {
+  hideSuccess();
+  const next = currentMissionIndex + 1;
+  if (next < MISSIONS.length) { selectMission(next); }
+  else {
+    document.getElementById('m-title').textContent = '🏆 כל הכבוד! סיימת את כל המשימות!';
+    document.getElementById('m-desc').textContent  = 'אתה מהנדס חשמל אמיתי! חזור למשחק חופשי ובנה מעגלים לפי בחירתך.';
+  }
+  renderMissionList();
+}
+
+// ═══════════════════════════════════════════════════════
+//  CANVAS RESIZE
+// ═══════════════════════════════════════════════════════
+function resizeCanvases() {
+  const fc = document.getElementById('free-canvas');
+  const fp = document.getElementById('free-panel');
+  if (fp && fc) {
+    fc.width  = fp.clientWidth;
+    fc.height = fp.clientHeight - fp.querySelector('.toolbar').offsetHeight - fp.querySelector('.info-bar').offsetHeight;
+  }
+  const mc   = document.getElementById('mission-canvas');
+  const area = mc?.parentElement;
+  if (mc && area) {
+    const toolbar  = area.parentElement?.querySelector('.toolbar');
+    const infobar  = area.parentElement?.querySelector('.info-bar');
+    mc.width  = area.clientWidth;
+    mc.height = area.clientHeight - (toolbar?.offsetHeight||0) - (infobar?.offsetHeight||0);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  ANIMATION LOOP
+// ═══════════════════════════════════════════════════════
+const freeCtx    = document.getElementById('free-canvas').getContext('2d');
+const missionCtx = document.getElementById('mission-canvas').getContext('2d');
+let lastT = 0;
+
+function loop(ts) {
+  const dt  = Math.min((ts - lastT) / 1000, 0.05);
+  lastT     = ts;
+  freeState.animTime    += dt;
+  missionState.animTime += dt;
+
+  const freeResult    = simulate(freeState);
+  const missionResult = simulate(missionState);
+
+  // Status badges
+  const fs = document.getElementById('free-status');
+  if (fs) {
+    fs.textContent = freeResult.closed ? '⚡ מעגל סגור' : 'מעגל פתוח';
+    fs.className   = 'circuit-status ' + (freeResult.closed ? 'status-closed' : 'status-open');
+  }
+  const ms = document.getElementById('mission-status');
+  if (ms) {
+    ms.textContent = missionResult.closed ? '⚡ מעגל סגור' : 'מעגל פתוח';
+    ms.className   = 'circuit-status ' + (missionResult.closed ? 'status-closed' : 'status-open');
+  }
+
+  renderState(freeCtx,    freeState,    freeResult);
+  renderState(missionCtx, missionState, missionResult);
+
+  checkMissionSuccess();
+  requestAnimationFrame(loop);
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+function init() {
+  resizeCanvases();
+  setupCanvas(document.getElementById('free-canvas'),    freeState);
+  setupCanvas(document.getElementById('mission-canvas'), missionState);
+  window.addEventListener('resize', resizeCanvases);
+
+  // Default tab: free
+  document.getElementById('free-panel').style.display = 'flex';
+  document.getElementById('missions-panel').classList.remove('visible');
+
+  // Init missions list & select first
+  renderMissionList();
+  selectMission(0);
+
+  // Start with select tool active
+  setActiveTool('select');
+
+  requestAnimationFrame(loop);
+}
+
+init();
+</script>
+</body>
+</html>
