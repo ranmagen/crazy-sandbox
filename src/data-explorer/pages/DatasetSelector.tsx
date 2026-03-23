@@ -1,5 +1,7 @@
 import type { Dataset } from '../data/datasets';
 import { ALL_DATASETS } from '../data/datasets';
+import { TOPICS_BY_CATEGORY, CATEGORY_EMOJI } from '../data/topicCatalog';
+import type { TopicCategory } from '../data/topicCatalog';
 import './DatasetSelector.css';
 
 interface Props {
@@ -30,6 +32,8 @@ export function DatasetSelector({ onSelect }: Props) {
           בחר נושא ותתחיל לגלות דפוסים ותובנות מנתונים אמיתיים
         </p>
       </div>
+
+      <h2 className="section-heading">📊 נסה עכשיו — נתונים מוכנים לחקירה</h2>
 
       <div className="dataset-grid">
         {ALL_DATASETS.map((ds) => (
@@ -68,6 +72,39 @@ export function DatasetSelector({ onSelect }: Props) {
             <div className="card-arrow">←</div>
           </button>
         ))}
+      </div>
+
+      <div className="topic-catalog">
+        <h2 className="section-heading">🔍 עוד נושאים לחקירה — מקורות נתונים פתוחים</h2>
+        <p className="section-subtitle">
+          מצאת נושא מעניין? לחץ על הקישור, הורד את הנתונים ובוא לחקור!
+        </p>
+
+        <div className="topic-categories">
+          {(Object.keys(TOPICS_BY_CATEGORY) as TopicCategory[]).map((cat) => (
+            <div key={cat} className="topic-category">
+              <h3 className="category-heading">
+                {CATEGORY_EMOJI[cat]} {cat}
+              </h3>
+              <ul className="topic-list">
+                {TOPICS_BY_CATEGORY[cat].map((topic) => (
+                  <li key={topic.id} className="topic-item">
+                    <span className="topic-number">{topic.id}</span>
+                    <a
+                      href={topic.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="topic-link"
+                    >
+                      {topic.title}
+                      <span className="topic-link-icon">↗</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

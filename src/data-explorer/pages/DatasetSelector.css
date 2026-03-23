@@ -136,6 +136,100 @@
   margin-top: 4px;
 }
 
+.section-heading {
+  font-size: 18px;
+  font-weight: 700;
+  color: #aab;
+  max-width: 1100px;
+  margin: 0 auto 16px;
+  padding: 0 4px;
+}
+
+/* ─── Topic Catalog ─────────────────────────────────────────────────────────── */
+
+.topic-catalog {
+  max-width: 1100px;
+  margin: 48px auto 0;
+}
+
+.section-subtitle {
+  font-size: 13px;
+  color: #556;
+  margin-bottom: 28px;
+  padding: 0 4px;
+}
+
+.topic-categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.topic-category {
+  background: #0f0f22;
+  border: 1px solid #1a1a32;
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.category-heading {
+  font-size: 14px;
+  font-weight: 700;
+  color: #8899dd;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #1a1a32;
+}
+
+.topic-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.topic-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.topic-number {
+  font-size: 10px;
+  color: #334;
+  min-width: 18px;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.topic-link {
+  font-size: 12px;
+  color: #7788bb;
+  text-decoration: none;
+  line-height: 1.4;
+  transition: color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.topic-link:hover {
+  color: #99aaee;
+}
+
+.topic-link-icon {
+  font-size: 10px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.topic-link:hover .topic-link-icon {
+  opacity: 1;
+}
+
 .card-arrow {
   font-size: 18px;
   color: #4455dd;
