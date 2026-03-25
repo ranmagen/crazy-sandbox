@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>מוראי – סרטון פרסומת 30 שניות</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;800;900&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a1a;
+      font-family: 'Heebo', 'Arial Hebrew', sans-serif;
+      width: 1280px;
+      height: 720px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    /* ============================================================
+       VIDEO STAGE
+    ============================================================ */
+    #stage {
+      width: 1280px;
+      height: 720px;
+      position: relative;
+      overflow: hidden;
+      background: #07071a;
+    }
+
+    /* ============================================================
+       PROGRESS BAR
+    ============================================================ */
+    #progress-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #7c3aed, #06b6d4);
+      z-index: 100;
+      transition: width 0.1s linear;
+      width: 0%;
+    }
+
+    /* ============================================================
+       PLAY OVERLAY
+    ============================================================ */
+    #play-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      cursor: pointer;
+      transition: opacity 0.5s;
+    }
+    #play-overlay .play-btn {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #06b6d4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      box-shadow: 0 0 60px rgba(124,58,237,0.6);
+      transition: transform 0.2s;
+    }
+    #play-overlay .play-btn:hover { transform: scale(1.1); }
+    #play-overlay .play-btn svg { width: 40px; height: 40px; fill: white; margin-right: -6px; }
+    #play-overlay p { color: white; font-size: 22px; font-weight: 300; letter-spacing: 1px; }
+
+    /* ============================================================
+       SHARED UTILITIES
+    ============================================================ */
+    .scene {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .scene.active { opacity: 1; pointer-events: auto; }
+
+    /* ============================================================
+       PARTICLE CANVAS (background)
+    ============================================================ */
+    #particle-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    /* ============================================================
+       SCENE 1 – INTRO / LOGO  (0–5s)
+    ============================================================ */
+    #scene1 {
+      background: radial-gradient(ellipse at center, #1a0a3a 0%, #07071a 70%);
+      z-index: 1;
+    }
+
+    .logo-ring {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin-bottom: 36px;
+    }
+    .logo-ring svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .logo-inner {
+      position: absolute;
+      inset: 20px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #2563eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+      font-weight: 900;
+      color: white;
+      box-shadow: 0 0 40px rgba(124,58,237,0.8), inset 0 0 30px rgba(255,255,255,0.1);
+    }
+
+    .s1-title {
+      font-size: 88px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #a78bfa, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -2px;
+      margin-bottom: 16px;
+    }
+    .s1-tagline {
+      font-size: 26px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.75);
+      letter-spacing: 4px;
+    }
+    .s1-badge {
+      margin-top: 32px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    /* Entrance animations scene 1 */
+    #scene1 .logo-ring  { animation: s1-ring  0.9s cubic-bezier(0.34,1.56,0.64,1) forwards; opacity: 0; }
+    #scene1 .s1-title   { animation: s1-title 0.8s 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards; opacity: 0; }
+    #scene1 .s1-tagline { animation: s1-sub   0.8s 0.7s ease forwards; opacity: 0; }
+    #scene1 .s1-badge   { animation: s1-sub   0.8s 1.2s ease forwards; opacity: 0; }
+
+    @keyframes s1-ring  { from{opacity:0;transform:scale(0.4) rotate(-90deg)} to{opacity:1;transform:scale(1) rotate(0)} }
+    @keyframes s1-title { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes s1-sub   { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ============================================================
+       SCENE 2 – THE CHALLENGE  (5–10s)
+    ============================================================ */
+    #scene2 {
+      background: radial-gradient(ellipse at 30% 50%, #0f172a 0%, #07071a 100%);
+      z-index: 1;
+    }
+
+    .s2-eyebrow {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 5px;
+      color: #7c3aed;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .s2-headline {
+      font-size: 60px;
+      font-weight: 900;
+      color: white;
+      text-align: center;
+      line-height: 1.15;
+      max-width: 800px;
+      margin-bottom: 32px;
+    }
+    .s2-headline span { color: #7c3aed; }
+
+    .s2-cards {
+      display: flex;
+      gap: 24px;
+      margin-top: 12px;
+    }
+    .s2-card {
+      width: 200px;
+      padding: 22px 20px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      text-align: center;
+      color: rgba(255,255,255,0.7);
+      font-size: 15px;
+    }
+    .s2-card .icon { font-size: 36px; display: block; margin-bottom: 10px; }
+
+    #scene2 .s2-eyebrow   { animation: s1-sub 0.5s 0.1s ease forwards; opacity:0; }
+    #scene2 .s2-headline  { animation: s1-sub 0.6s 0.3s ease forwards; opacity:0; }
+    #scene2 .s2-cards .s2-card:nth-child(1) { animation: s1-sub 0.5s 0.6s ease forwards; opacity:0; }
+    #scene2 .s2-cards .s2-card:nth-child(2) { animation: s1-sub 0.5s 0.8s ease forwards; opacity:0; }
+    #scene2 .s2-cards .s2-card:nth-child(3) { animation: s1-sub 0.5s 1.0s ease forwards; opacity:0; }
+
+    /* ============================================================
+       SCENE 3 – THE SOLUTION  (10–17s)
+    ============================================================ */
+    #scene3 {
+      background: linear-gradient(135deg, #0f0730 0%, #07071a 50%, #001a2e 100%);
+      z-index: 1;
+    }
+
+    .s3-label {
+      font-size: 14px;
+      letter-spacing: 6px;
+      font-weight: 600;
+      color: #06b6d4;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .s3-headline {
+      font-size: 54px;
+      font-weight: 900;
+      color: white;
+      text-align: center;
+      line-height: 1.2;
+      max-width: 780px;
+      margin-bottom: 48px;
+    }
+    .s3-headline em { font-style:normal; color: #06b6d4; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      width: 860px;
+    }
+    .feat {
+      padding: 26px 22px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(6,182,212,0.08));
+      border: 1px solid rgba(124,58,237,0.25);
+      text-align: center;
+    }
+    .feat .feat-icon { font-size: 38px; margin-bottom: 12px; display: block; }
+    .feat .feat-title { font-size: 18px; font-weight: 700; color: white; margin-bottom: 6px; }
+    .feat .feat-desc  { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.5; }
+
+    #scene3 .s3-label    { animation: s1-sub 0.5s 0.1s ease forwards; opacity:0; }
+    #scene3 .s3-headline { animation: s1-sub 0.6s 0.3s ease forwards; opacity:0; }
+    #scene3 .feat:nth-child(1) { animation: feat-in 0.5s 0.6s ease forwards; opacity:0; }
+    #scene3 .feat:nth-child(2) { animation: feat-in 0.5s 0.8s ease forwards; opacity:0; }
+    #scene3 .feat:nth-child(3) { animation: feat-in 0.5s 1.0s ease forwards; opacity:0; }
+    #scene3 .feat:nth-child(4) { animation: feat-in 0.5s 1.2s ease forwards; opacity:0; }
+    #scene3 .feat:nth-child(5) { animation: feat-in 0.5s 1.4s ease forwards; opacity:0; }
+    #scene3 .feat:nth-child(6) { animation: feat-in 0.5s 1.6s ease forwards; opacity:0; }
+
+    @keyframes feat-in { from{opacity:0;transform:translateY(20px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+    /* ============================================================
+       SCENE 4 – USE CASES  (17–23s)
+    ============================================================ */
+    #scene4 {
+      background: radial-gradient(ellipse at 70% 30%, #0a1628 0%, #07071a 70%);
+      z-index: 1;
+    }
+
+    .s4-label {
+      font-size: 14px;
+      letter-spacing: 6px;
+      font-weight: 600;
+      color: #a78bfa;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .s4-headline {
+      font-size: 52px;
+      font-weight: 900;
+      color: white;
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .use-cases {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 700px;
+    }
+    .use-case {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 20px 28px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .use-case .uc-num {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #2563eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: white;
+      flex-shrink: 0;
+    }
+    .use-case .uc-text { font-size: 20px; font-weight: 600; color: white; }
+    .use-case .uc-chip {
+      margin-right: auto;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(6,182,212,0.15);
+      border: 1px solid rgba(6,182,212,0.3);
+      color: #06b6d4;
+      font-weight: 600;
+    }
+
+    #scene4 .s4-label    { animation: s1-sub 0.5s 0.1s ease forwards; opacity:0; }
+    #scene4 .s4-headline { animation: s1-sub 0.6s 0.3s ease forwards; opacity:0; }
+    #scene4 .use-case:nth-child(1) { animation: uc-in 0.4s 0.6s ease forwards; opacity:0; }
+    #scene4 .use-case:nth-child(2) { animation: uc-in 0.4s 0.9s ease forwards; opacity:0; }
+    #scene4 .use-case:nth-child(3) { animation: uc-in 0.4s 1.2s ease forwards; opacity:0; }
+
+    @keyframes uc-in { from{opacity:0;transform:translateX(30px)} to{opacity:1;transform:translateX(0)} }
+
+    /* ============================================================
+       SCENE 5 – SOCIAL PROOF  (23–27s)
+    ============================================================ */
+    #scene5 {
+      background: linear-gradient(135deg, #07071a 0%, #0f0730 100%);
+      z-index: 1;
+    }
+
+    .s5-stat-row {
+      display: flex;
+      gap: 60px;
+      margin-bottom: 40px;
+    }
+    .s5-stat {
+      text-align: center;
+    }
+    .s5-stat .num {
+      font-size: 72px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #a78bfa, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .s5-stat .lbl {
+      font-size: 18px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.55);
+    }
+    .s5-quote {
+      max-width: 700px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.6;
+      font-style: italic;
+    }
+    .s5-quote::before, .s5-quote::after { content: '"'; color: #7c3aed; }
+
+    #scene5 .s5-stat-row { animation: s1-sub 0.7s 0.2s ease forwards; opacity:0; }
+    #scene5 .s5-quote    { animation: s1-sub 0.7s 0.7s ease forwards; opacity:0; }
+
+    /* ============================================================
+       SCENE 6 – CTA / OUTRO  (27–30s)
+    ============================================================ */
+    #scene6 {
+      background: radial-gradient(ellipse at center, #1a0a3a 0%, #07071a 65%);
+      z-index: 1;
+    }
+
+    .cta-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .s6-main {
+      font-size: 80px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #a78bfa, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -2px;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 2;
+    }
+    .s6-sub {
+      font-size: 28px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.65);
+      margin-bottom: 44px;
+      position: relative;
+      z-index: 2;
+    }
+    .s6-url {
+      font-size: 22px;
+      font-weight: 700;
+      padding: 18px 52px;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #7c3aed, #2563eb);
+      color: white;
+      letter-spacing: 1px;
+      box-shadow: 0 0 40px rgba(124,58,237,0.5);
+      position: relative;
+      z-index: 2;
+      margin-bottom: 28px;
+    }
+    .s6-powered {
+      font-size: 13px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 3px;
+      position: relative;
+      z-index: 2;
+    }
+    .s6-powered span { color: rgba(255,255,255,0.55); font-weight: 600; }
+
+    #scene6 .s6-main    { animation: s6-main  1s 0.1s cubic-bezier(0.34,1.56,0.64,1) forwards; opacity:0; }
+    #scene6 .s6-sub     { animation: s1-sub   0.7s 0.5s ease forwards; opacity:0; }
+    #scene6 .s6-url     { animation: s6-url   0.8s 0.9s cubic-bezier(0.34,1.56,0.64,1) forwards; opacity:0; }
+    #scene6 .s6-powered { animation: s1-sub   0.7s 1.4s ease forwards; opacity:0; }
+    #scene6 .cta-glow   { animation: cta-pulse 2s 0.5s ease-in-out infinite alternate; opacity:0; }
+
+    @keyframes s6-main  { from{opacity:0;transform:scale(0.7)} to{opacity:1;transform:scale(1)} }
+    @keyframes s6-url   { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
+    @keyframes cta-pulse { from{opacity:0.4;transform:scale(0.9)} to{opacity:1;transform:scale(1.2)} }
+
+    /* ============================================================
+       SCENE TRANSITIONS
+    ============================================================ */
+    .scene { transition: opacity 0.6s ease; }
+
+    /* ============================================================
+       TIMER DISPLAY
+    ============================================================ */
+    #timer {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.3);
+      z-index: 100;
+      font-family: monospace;
+    }
+
+  </style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- Particle background -->
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- ============ SCENE 1: INTRO ============ -->
+  <div id="scene1" class="scene active">
+    <div class="logo-ring">
+      <svg viewBox="0 0 180 180">
+        <circle cx="90" cy="90" r="82" fill="none" stroke="url(#ring-grad)" stroke-width="2.5"
+          stroke-dasharray="515" stroke-dashoffset="515"
+          style="animation: ring-draw 1.2s 0.2s ease forwards;">
+        </circle>
+        <circle cx="90" cy="90" r="82" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+        <defs>
+          <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7c3aed"/>
+            <stop offset="100%" stop-color="#06b6d4"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="logo-inner">מ</div>
+    </div>
+    <div class="s1-title">מוראי</div>
+    <div class="s1-tagline">הגשר שלך לבינה מלאכותית</div>
+    <div class="s1-badge">by MindCET · EdTech Innovation Center</div>
+  </div>
+
+  <!-- ============ SCENE 2: CHALLENGE ============ -->
+  <div id="scene2" class="scene">
+    <div class="s2-eyebrow">אתגר החינוך של המאה ה-21</div>
+    <div class="s2-headline">
+      הטכנולוגיה <span>משנה</span> את הכיתה.<br>
+      המורים ראויים לכלים חכמים.
+    </div>
+    <div class="s2-cards">
+      <div class="s2-card">
+        <span class="icon">⏱️</span>
+        עומס עצום<br>של הכנת שיעורים
+      </div>
+      <div class="s2-card">
+        <span class="icon">🤯</span>
+        AI מורכב<br>וקשה לשימוש
+      </div>
+      <div class="s2-card">
+        <span class="icon">📚</span>
+        תלמידים עם<br>צרכים מגוונים
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCENE 3: SOLUTION ============ -->
+  <div id="scene3" class="scene">
+    <div class="s3-label">הפתרון שלנו</div>
+    <div class="s3-headline">
+      מוראי מביאה את <em>כוח ה-AI</em><br>
+      ישירות לידיים שלך
+    </div>
+    <div class="features-grid">
+      <div class="feat">
+        <span class="feat-icon">✨</span>
+        <div class="feat-title">פרומפטים מוכנים</div>
+        <div class="feat-desc">תבניות AI מותאמות לחינוך</div>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">⚡</span>
+        <div class="feat-title">מהיר ופשוט</div>
+        <div class="feat-desc">ממשק אינטואיטיבי לכל מורה</div>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">🎯</span>
+        <div class="feat-title">מותאם אישית</div>
+        <div class="feat-desc">לפי גיל, מקצוע ורמה</div>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">🤝</span>
+        <div class="feat-title">קהילה פדגוגית</div>
+        <div class="feat-desc">מורים חולקים ולומדים יחד</div>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">📊</span>
+        <div class="feat-title">מעקב ולמידה</div>
+        <div class="feat-desc">כלים לניתוח ומשוב</div>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">🔒</span>
+        <div class="feat-title">בטוח ומאובטח</div>
+        <div class="feat-desc">מותאם לסביבה חינוכית</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCENE 4: USE CASES ============ -->
+  <div id="scene4" class="scene">
+    <div class="s4-label">בשימוש יומיומי</div>
+    <div class="s4-headline">מה תוכל/י לעשות עם מוראי?</div>
+    <div class="use-cases">
+      <div class="use-case">
+        <div class="uc-num">1</div>
+        <div class="uc-text">צור מבחנים ודפי עבודה בשניות</div>
+        <div class="uc-chip">חוסך שעות</div>
+      </div>
+      <div class="use-case">
+        <div class="uc-num">2</div>
+        <div class="uc-text">תכנן יחידות הוראה מותאמות אישית</div>
+        <div class="uc-chip">פדגוגיה חכמה</div>
+      </div>
+      <div class="use-case">
+        <div class="uc-num">3</div>
+        <div class="uc-text">קבל משוב ורעיונות לכיתה מגוונת</div>
+        <div class="uc-chip">AI לחינוך</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCENE 5: SOCIAL PROOF ============ -->
+  <div id="scene5" class="scene">
+    <div class="s5-stat-row">
+      <div class="s5-stat">
+        <div class="num">1000+</div>
+        <div class="lbl">מורים פעילים</div>
+      </div>
+      <div class="s5-stat">
+        <div class="num">50K+</div>
+        <div class="lbl">פרומפטים שנוצרו</div>
+      </div>
+      <div class="s5-stat">
+        <div class="num">98%</div>
+        <div class="lbl">שביעות רצון</div>
+      </div>
+    </div>
+    <div class="s5-quote">
+      מוראי שינתה את הדרך שבה אני מכינה שיעורים – חוסכת לי שעות כל שבוע
+    </div>
+  </div>
+
+  <!-- ============ SCENE 6: CTA ============ -->
+  <div id="scene6" class="scene">
+    <div class="cta-glow"></div>
+    <div class="s6-main">מוראי</div>
+    <div class="s6-sub">הגשר שלך לבינה מלאכותית בהוראה</div>
+    <div class="s6-url">morai.mindcet.org</div>
+    <div class="s6-powered">Powered by <span>MindCET</span></div>
+  </div>
+
+  <!-- Progress bar -->
+  <div id="progress-bar"></div>
+  <div id="timer">00:00 / 00:30</div>
+
+  <!-- Play overlay -->
+  <div id="play-overlay">
+    <div class="play-btn">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </div>
+    <p>לחץ/י להפעלה · 30 שניות</p>
+  </div>
+</div>
+
+<style>
+  @keyframes ring-draw { to { stroke-dashoffset: 0; } }
+</style>
+
+<script>
+/* ============================================================
+   PARTICLE SYSTEM
+============================================================ */
+const canvas = document.getElementById('particle-canvas');
+const ctx    = canvas.getContext('2d');
+canvas.width  = 1280;
+canvas.height = 720;
+
+const particles = [];
+for (let i = 0; i < 120; i++) {
+  particles.push({
+    x: Math.random() * 1280,
+    y: Math.random() * 720,
+    r: Math.random() * 1.8 + 0.4,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3,
+    a: Math.random() * 0.5 + 0.1,
+    hue: Math.random() > 0.5 ? 260 : 195
+  });
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, 1280, 720);
+  particles.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${p.hue}, 80%, 70%, ${p.a})`;
+    ctx.fill();
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = 1280;
+    if (p.x > 1280) p.x = 0;
+    if (p.y < 0) p.y = 720;
+    if (p.y > 720) p.y = 0;
+  });
+
+  // Draw subtle connections
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 90) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(124, 58, 237, ${0.12 * (1 - dist/90)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+/* ============================================================
+   SCENE TIMELINE
+   Durations in milliseconds
+============================================================ */
+const SCENES = [
+  { id: 'scene1', start: 0,     end: 5000  },
+  { id: 'scene2', start: 5000,  end: 10000 },
+  { id: 'scene3', start: 10000, end: 17000 },
+  { id: 'scene4', start: 17000, end: 23000 },
+  { id: 'scene5', start: 23000, end: 27000 },
+  { id: 'scene6', start: 27000, end: 30000 },
+];
+const TOTAL = 30000;
+
+let startTime = null;
+let rafId = null;
+let playing = false;
+
+function formatTime(ms) {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  return `0${m}:${String(s % 60).padStart(2,'0')}`;
+}
+
+function resetAnimations(sceneEl) {
+  // Re-trigger CSS animations by cloning children
+  sceneEl.querySelectorAll('[style*="animation"], [class]').forEach(el => {
+    el.style.animation = 'none';
+    el.offsetHeight; // reflow
+    el.style.animation = '';
+  });
+}
+
+function tick(now) {
+  if (!startTime) startTime = now;
+  const elapsed = now - startTime;
+
+  // Progress bar
+  const pct = Math.min(elapsed / TOTAL * 100, 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+
+  // Timer
+  document.getElementById('timer').textContent =
+    formatTime(elapsed) + ' / ' + formatTime(TOTAL);
+
+  // Scene switching
+  SCENES.forEach(sc => {
+    const el = document.getElementById(sc.id);
+    const wasActive = el.classList.contains('active');
+    const shouldBeActive = elapsed >= sc.start && elapsed < sc.end;
+
+    if (shouldBeActive && !wasActive) {
+      el.classList.add('active');
+      // Retrigger child animations
+      const children = el.querySelectorAll('*');
+      children.forEach(c => {
+        if (c.style) {
+          const saved = c.style.animation;
+          c.style.animation = 'none';
+          c.offsetHeight;
+          c.style.animation = saved;
+        }
+      });
+    } else if (!shouldBeActive && wasActive) {
+      el.classList.remove('active');
+    }
+  });
+
+  if (elapsed < TOTAL) {
+    rafId = requestAnimationFrame(tick);
+  } else {
+    // End – show outro still, reset timer
+    document.getElementById('timer').textContent = formatTime(TOTAL) + ' / ' + formatTime(TOTAL);
+    playing = false;
+    // Show play overlay for replay
+    setTimeout(() => {
+      const o = document.getElementById('play-overlay');
+      o.querySelector('p').textContent = 'לחץ/י לצפייה חוזרת · 30 שניות';
+      o.querySelector('.play-btn svg').innerHTML = '<path d="M12 5V1L7 6l5 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>';
+      o.style.opacity = '1';
+      o.style.pointerEvents = 'auto';
+    }, 800);
+  }
+}
+
+function startVideo() {
+  if (playing) return;
+  playing = true;
+  startTime = null;
+
+  // Hide overlay
+  const overlay = document.getElementById('play-overlay');
+  overlay.style.opacity = '0';
+  overlay.style.pointerEvents = 'none';
+
+  // Reset all scenes
+  SCENES.forEach(sc => {
+    document.getElementById(sc.id).classList.remove('active');
+  });
+  document.getElementById('scene1').classList.add('active');
+
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(tick);
+}
+
+document.getElementById('play-overlay').addEventListener('click', startVideo);
+</script>
+</body>
+</html>
