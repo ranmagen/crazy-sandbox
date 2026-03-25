@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { AppLayout } from './components/layout/AppLayout';
 import { DataExplorer } from './data-explorer/DataExplorer';
+import { SkateboardSimulation } from './skateboard/SkateboardSimulation';
 import './App.css';
 
-type AppMode = 'physics' | 'data';
+type AppMode = 'physics' | 'data' | 'skateboard';
 
 export default function App() {
   const [mode, setMode] = useState<AppMode>('physics');
@@ -28,11 +29,19 @@ export default function App() {
           >
             📊 חקר נתונים
           </button>
+          <button
+            className={`nav-tab ${mode === 'skateboard' ? 'active' : ''}`}
+            onClick={() => setMode('skateboard')}
+          >
+            🛹 סקייטבורד
+          </button>
         </div>
       </nav>
 
       <div className="app-content">
-        {mode === 'physics' ? <AppLayout /> : <DataExplorer />}
+        {mode === 'physics' && <AppLayout />}
+        {mode === 'data' && <DataExplorer />}
+        {mode === 'skateboard' && <SkateboardSimulation />}
       </div>
     </div>
   );
